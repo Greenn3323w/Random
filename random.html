@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Универсальный Генератор с Меню</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            display: flex; /* Используем flexbox для расположения меню и контента */
+            min-height: 100vh;
+        }
+
+        /* --- Стили для навигационного меню --- */
+        .sidebar {
+            width: 250px;
+            background-color: #2c3e50; /* Темный фон для сайдбара */
+            color: white;
+            padding: 20px 0;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+            flex-shrink: 0; /* Запрещает сайдбару сжиматься */
+        }
+
+        .sidebar h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #ecf0f1;
+            font-size: 1.8em;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar ul li {
+            margin-bottom: 5px;
+        }
+
+        .sidebar ul li a {
+            display: block;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .sidebar ul li a:hover,
+        .sidebar ul li a.active {
+            background-color: #34495e; /* Цвет при наведении и для активной вкладки */
+            color: #8cc63f; /* Яркий цвет для активной вкладки */
+            border-left: 5px solid #8cc63f; /* Индикатор активной вкладки */
+            padding-left: 20px; /* Смещение для индикатора */
+        }
+
+        /* --- Стили для основного контента --- */
+        .content {
+            flex-grow: 1; /* Позволяет контенту занимать все доступное пространство */
+            padding: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow-y: auto; /* Для прокрутки, если контента много */
+        }
+
+        .generator-section {
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            padding: 30px 40px;
+            width: 100%;
+            max-width: 700px; /* Уменьшенная ширина для одной карточки */
+            display: none; /* Скрыто по умолчанию, будет показано через JS */
+            flex-direction: column; /* Элементы внутри секции вертикально */
+            align-items: center; /* Центрируем элементы внутри секции */
+        }
+
+        .generator-section.active {
+            display: flex; /* Показываем активную секцию */
+        }
+
+        h1 {
+            text-align: center;
+            color: #007bff;
+            margin-bottom: 35px;
+            font-size: 2.5em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+            width: 100%; /* Заголовок на всю ширину секции */
+        }
+
+        .generator-card {
+            background-color: #f9f9f9;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            width: 100%; /* Карточка занимает всю доступную ширину */
+            max-width: 450px; /* Ограничиваем максимальную ширину карточки */
+            margin-top: 20px; /* Отступ от заголовка или предыдущей карточки */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .generator-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        h2 {
+            color: #007bff;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        input[type="number"],
+        input[type="text"],
+        textarea {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            width: 100%;
+            margin-top: auto;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9f7ef;
+            border: 1px solid #d4edda;
+            border-radius: 6px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #155724;
+            text-align: center;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: break-word;
+        }
+
+        /* Стили для Барабана */
+        #drumOutput {
+            font-size: 2em;
+            font-weight: bold;
+            color: #0056b3;
+            animation: none; /* Убираем начальную анимацию */
+            display: none; /* Скрыто по умолчанию */
+        }
+        #drumOutput.spinning {
+            display: flex;
+            animation: spin 0.1s infinite linear;
+        }
+        #drumOutput.result {
+            animation: none;
+            color: #d9534f;
+            font-size: 2.5em;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Генераторы</h2>
+        <ul>
+            <li><a href="#" class="nav-link active" data-target="number-generator">Генератор Числа</a></li>
+            <li><a href="#" class="nav-link" data-target="word-generator">Генератор Слова</a></li>
+            <li><a href="#" class="nav-link" data-target="drum-generator">Барабан</a></li>
+            <li><a href="#" class="nav-link" data-target="randomizer-generator">Рандомайзер</a></li>
+        </ul>
+    </div>
+
+    <div class="content">
+        <div id="number-generator" class="generator-section active">
+            <h1>Генератор Числа</h1>
+            <div class="generator-card">
+                <h2>Случайное число</h2>
+                <div>
+                    <label for="minNumber">От:</label>
+                    <input type="number" id="minNumber" value="1">
+                </div>
+                <div>
+                    <label for="maxNumber">До:</label>
+                    <input type="number" id="maxNumber" value="100">
+                </div>
+                <button onclick="generateNumber()">Сгенерировать Число</button>
+                <div class="output" id="randomNumberOutput"></div>
+            </div>
+        </div>
+
+        <div id="word-generator" class="generator-section">
+            <h1>Генератор Слова/Элемента</h1>
+            <div class="generator-card">
+                <h2>Случайный элемент из списка</h2>
+                <label for="wordList">Введите элементы (каждый на новой строке):</label>
+                <textarea id="wordList" placeholder="яблоко&#10;груша&#10;банан&#10;апельсин&#10;манго">яблоко
+груша
+банан
+апельсин
+манго</textarea>
+                <button onclick="generateWord()">Сгенерировать Элемент</button>
+                <div class="output" id="randomWordOutput"></div>
+            </div>
+        </div>
+
+        <div id="drum-generator" class="generator-section">
+            <h1>Барабан (Случайный выбор)</h1>
+            <div class="generator-card">
+                <h2>Крути и выбирай!</h2>
+                <label for="drumList">Введите варианты для барабана (каждый на новой строке):</label>
+                <textarea id="drumList" placeholder="Вариант 1&#10;Вариант 2&#10;Вариант 3">Да
+Нет
+Может быть
+Попробуй еще раз
+Спроси позже</textarea>
+                <button onclick="spinDrum()">Крутить Барабан!</button>
+                <div class="output" id="drumOutput"></div>
+            </div>
+        </div>
+
+        <div id="randomizer-generator" class="generator-section">
+            <h1>Рандомайзер (Перемешивание списка)</h1>
+            <div class="generator-card">
+                <h2>Перемешать ваш список</h2>
+                <label for="randomizerList">Введите элементы для перемешивания (каждый на новой строке):</label>
+                <textarea id="randomizerList" placeholder="Элемент 1&#10;Элемент 2&#10;Элемент 3">Первый
+Второй
+Третий
+Четвертый
+Пятый</textarea>
+                <button onclick="randomizeList()">Перемешать Список</button>
+                <div class="output" id="randomizedListOutput"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Логика переключения вкладок (меню) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const navLinks = document.querySelectorAll('.nav-link');
+            const generatorSections = document.querySelectorAll('.generator-section');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault(); // Предотвращаем переход по ссылке
+                    const targetId = e.target.dataset.target;
+
+                    // Удаляем класс 'active' со всех ссылок и секций
+                    navLinks.forEach(nav => nav.classList.remove('active'));
+                    generatorSections.forEach(section => section.classList.remove('active'));
+
+                    // Добавляем класс 'active' к выбранной ссылке и соответствующей секции
+                    e.target.classList.add('active');
+                    document.getElementById(targetId).classList.add('active');
+
+                    // Останавливаем анимацию барабана при переключении
+                    const drumOutput = document.getElementById('drumOutput');
+                    if (drumOutput && drumOutput.classList.contains('spinning')) {
+                         clearInterval(drumInterval); // Очищаем интервал
+                         drumOutput.classList.remove('spinning');
+                         drumOutput.classList.remove('result'); // Убираем класс результата
+                         drumOutput.textContent = ''; // Очищаем текст
+                         drumOutput.style.display = 'none'; // Скрываем
+                    }
+                });
+            });
+        });
+
+
+        // --- Логика генераторов (без изменений от предыдущей версии) ---
+
+        // Генератор Числа
+        function generateNumber() {
+            const min = parseInt(document.getElementById('minNumber').value);
+            const max = parseInt(document.getElementById('maxNumber').value);
+            const outputDiv = document.getElementById('randomNumberOutput');
+
+            if (isNaN(min) || isNaN(max)) {
+                outputDiv.textContent = "Введите корректные числа.";
+                return;
+            }
+            if (min > max) {
+                outputDiv.textContent = "Минимальное число не может быть больше максимального.";
+                return;
+            }
+
+            const randomNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+            outputDiv.textContent = randomNumber;
+        }
+
+        // Генератор Слова (Элемента из списка)
+        function generateWord() {
+            const wordListInput = document.getElementById('wordList').value;
+            const outputDiv = document.getElementById('randomWordOutput');
+            const words = wordListInput.split('\n').map(word => word.trim()).filter(word => word !== '');
+
+            if (words.length === 0) {
+                outputDiv.textContent = "Введите хотя бы один элемент.";
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * words.length);
+            outputDiv.textContent = words[randomIndex];
+        }
+
+        // Барабан (с анимацией)
+        let drumInterval;
+        function spinDrum() {
+            const drumListInput = document.getElementById('drumList').value;
+            const outputDiv = document.getElementById('drumOutput');
+            const options = drumListInput.split('\n').map(option => option.trim()).filter(option => option !== '');
+
+            if (options.length === 0) {
+                outputDiv.textContent = "Введите хотя бы один вариант для барабана.";
+                return;
+            }
+
+            outputDiv.classList.add('spinning');
+            outputDiv.classList.remove('result');
+            outputDiv.style.display = 'flex'; // Показываем барабан
+
+            let spinCount = 0;
+            const totalSpins = 20 + Math.floor(Math.random() * 10); // Крутится 20-30 раз
+            let currentSpin = 0;
+
+            clearInterval(drumInterval); // Очищаем предыдущий интервал, если был
+
+            drumInterval = setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * options.length);
+                outputDiv.textContent = options[randomIndex];
+                currentSpin++;
+
+                if (currentSpin >= totalSpins) {
+                    clearInterval(drumInterval);
+                    outputDiv.classList.remove('spinning');
+                    outputDiv.classList.add('result'); // Добавляем класс для результата
+                    const finalIndex = Math.floor(Math.random() * options.length);
+                    outputDiv.textContent = options[finalIndex]; // Показываем окончательный результат
+                }
+            }, 100); // Интервал для анимации
+        }
+
+        // Рандомайзер (перемешивание списка)
+        function randomizeList() {
+            const randomizerListInput = document.getElementById('randomizerList').value;
+            const outputDiv = document.getElementById('randomizedListOutput');
+            let items = randomizerListInput.split('\n').map(item => item.trim()).filter(item => item !== '');
+
+            if (items.length === 0) {
+                outputDiv.textContent = "Введите хотя бы один элемент для перемешивания.";
+                return;
+            }
+
+            // Алгоритм Фишера-Йетса для перемешивания
+            for (let i = items.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [items[i], items[j]] = [items[j], items[i]]; // Обмен элементов
+            }
+
+            outputDiv.textContent = items.join('\n');
+        }
+    </script>
+</body>
+</html>
